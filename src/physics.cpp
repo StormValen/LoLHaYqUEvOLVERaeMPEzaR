@@ -31,8 +31,7 @@ namespace LilSpheres {
 }
 
 float *partVerts;
-//glm::vec3 gravity = {0, -9.8, 0};
-float acc = -9.8;
+glm::vec3 gravity = {0, -9.8, 0};
 int updateRange = 20;
 float timePerFrame = 0.033;
 int maxLife = 60;
@@ -74,20 +73,15 @@ void PhysicsUpdate(float dt) {
 		//save last velocity module
 		particlesContainer[i].lastVel = particlesContainer[i].vel;
 
+		
 		//update vector velocity velocity with formula
-		particlesContainer[i].vel.x = particlesContainer[i].lastVel.x; //acc = 0;
-		particlesContainer[i].vel.y = particlesContainer[i].lastVel.y + acc * timePerFrame;
-		particlesContainer[i].vel.z = particlesContainer[i].lastVel.z;//acc = 0;
+		particlesContainer[i].vel = particlesContainer[i].lastVel + gravity * timePerFrame;
 
-																	  //save last position 
-		particlesContainer[i].lastPos.x = particlesContainer[i].pos.x;
-		particlesContainer[i].lastPos.y = particlesContainer[i].pos.y;
-		particlesContainer[i].lastPos.z = particlesContainer[i].pos.z;
+		//save last position 
+		particlesContainer[i].lastPos = particlesContainer[i].pos;
 
 		//update position with formula
-		particlesContainer[i].pos.x = particlesContainer[i].lastPos.x + timePerFrame * particlesContainer[i].lastVel.x;  //acc = 0;
-		particlesContainer[i].pos.y = particlesContainer[i].lastPos.y + timePerFrame * particlesContainer[i].lastVel.y + 1 / 2 * acc * (pow(timePerFrame, 2));
-		particlesContainer[i].pos.z = particlesContainer[i].lastPos.z + timePerFrame * particlesContainer[i].lastVel.z;  //acc = 0;
+		particlesContainer[i].pos = particlesContainer[i].lastPos + timePerFrame * particlesContainer[i].lastVel +  0.5f * gravity * (pow(timePerFrame, 2)); //components x and z have 0 gravity.
 
 		//life manager
 		if (particlesContainer[i].life < maxLife) {
@@ -100,7 +94,7 @@ void PhysicsUpdate(float dt) {
 		}
 
 		/*
-		//check colision, powerpoint formula uses vectors, we use escalar componenets
+		//check colision
 		if (particlesContainer[i].pos.x <= -5 + radius || particlesContainer[i].pos.x >= 5 - radius) {
 		particlesContainer[i].pos.x = -particlesContainer[i].pos.x - 2 * (-5 - particlesContainer[i].lastPos.x + radius);
 		particlesContainer[i].vel.x = -particlesContainer[i].vel.x;
