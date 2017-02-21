@@ -4,8 +4,8 @@
 #include <cstdio>
 
 //Boolean variables allow to show/hide the primitives
-bool renderSphere = true;
-bool renderCapsule = true;
+bool renderSphere = false;
+bool renderCapsule = false;
 bool renderParticles = true;
 
 namespace Sphere {
@@ -21,12 +21,13 @@ extern void updateCapsule(glm::vec3 posA, glm::vec3 posB, float radius = 1.f);
 extern void drawCapsule();
 }
 namespace LilSpheres {
-extern const int maxParticles;
-extern void setupParticles(int numTotalParticles, float radius = 0.05f);
-extern void cleanupParticles();
-extern void updateParticles(int startIdx, int count, float* array_data);
-extern void drawParticles(int startIdx, int count);
+	extern const int maxParticles;
+	extern void setupParticles(int numTotalParticles, float radius = 0.05f);
+	extern void cleanupParticles();
+	extern void updateParticles(int startIdx, int count, float* array_data);
+	extern void drawParticles(int startIdx, int count);
 }
+
 
 void setupPrims() {
 	Sphere::setupSphere();
@@ -44,14 +45,7 @@ void setupPrims() {
 	//updateParticles is the function you can use to update the position of the particles (directly from the physics code)
 	//The access is contiguous from an start idx to idx+count particles. You may need to do multiple calls.
 	//Called here as an example to initialize to random values all particles inside the box. This code can be removed.
-	float *partVerts = new float[LilSpheres::maxParticles * 3];
-	for(int i = 0; i < LilSpheres::maxParticles; ++i) {
-		partVerts[i * 3 + 0] = ((float)rand() / RAND_MAX) * 10.f - 5.f;
-		partVerts[i * 3 + 1] = ((float)rand() / RAND_MAX) * 10.f;
-		partVerts[i * 3 + 2] = ((float)rand() / RAND_MAX) * 10.f - 5.f;
-	}
-	LilSpheres::updateParticles(0, LilSpheres::maxParticles, partVerts);
-	delete[] partVerts;
+	
 	//
 }
 void cleanupPrims() {
