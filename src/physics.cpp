@@ -30,33 +30,35 @@ namespace LilSpheres {
 	extern void drawParticles(int startIdx, int count);
 }
 
+float *partVerts;
 //glm::vec3 gravity = {0, -9.8, 0};
 float acc = -9.8;
+int updateRange = 20;
 float timePerFrame = 0.033;
+int maxLife = 60;
 
 struct Particle {
 	glm::vec3 pos;
 	glm::vec3 lastPos;
 	glm::vec3 vel;
 	glm::vec3 lastVel;
-	float weigth;
 	float life;
 };
 
 Particle *particlesContainer = new Particle[LilSpheres::maxParticles];
-int updateRange = 20;
-
-float *partVerts;
 
 void PhysicsInit() {
+	
 	partVerts = new float[LilSpheres::maxParticles * 3];
+	
+	//init position particles
 	for (int i = 0; i < LilSpheres::maxParticles; ++i) {
-		//partVerts[i * 3 + 0] = ((float)rand() / RAND_MAX) * 10.f - 5.f;
 		partVerts[i * 3 + 0] = 0;
 		partVerts[i * 3 + 1] = 1;
 		partVerts[i * 3 + 2] = 0;
 	}
 
+	//sets de initial position, velocity and life
 	srand(time(NULL));
 	for (int i = 0; i < LilSpheres::maxParticles; i++) {
 		particlesContainer[i].pos = glm::vec3(partVerts[i*3], partVerts[i*3 + 1], partVerts[i*3 + 2]);
@@ -67,7 +69,6 @@ void PhysicsInit() {
 void PhysicsUpdate(float dt) {
 	
 	//for all particles
-
 	for (int i = 0; i < updateRange; i++) {
 
 		//save last velocity module
@@ -88,8 +89,8 @@ void PhysicsUpdate(float dt) {
 		particlesContainer[i].pos.y = particlesContainer[i].lastPos.y + timePerFrame * particlesContainer[i].lastVel.y + 1 / 2 * acc * (pow(timePerFrame, 2));
 		particlesContainer[i].pos.z = particlesContainer[i].lastPos.z + timePerFrame * particlesContainer[i].lastVel.z;  //acc = 0;
 
-																														 //life manager
-		if (particlesContainer[i].life < 60) { //frame number life
+		//life manager
+		if (particlesContainer[i].life < maxLife) {
 			particlesContainer[i].life += 1;
 		}
 		else { //init the particle (center and new random vector)
@@ -97,6 +98,7 @@ void PhysicsUpdate(float dt) {
 			particlesContainer[i].vel = glm::vec3(((float)rand() / RAND_MAX) * 6.f - 3.f, (10 + ((float)rand() / RAND_MAX) * 6.f - 3.f), ((float)rand() / RAND_MAX) * 6.f - 3.f); //random
 			particlesContainer[i].life = 0;
 		}
+
 		/*
 		//check colision, powerpoint formula uses vectors, we use escalar componenets
 		if (particlesContainer[i].pos.x <= -5 + radius || particlesContainer[i].pos.x >= 5 - radius) {
@@ -110,7 +112,7 @@ void PhysicsUpdate(float dt) {
 
 		}*/
 
-		//update component vector
+		//update partVerts vector with the new position
 		partVerts[3 * i] = particlesContainer[i].pos.x;
 		partVerts[3 * i + 1] = particlesContainer[i].pos.y;
 		partVerts[3 * i + 2] = particlesContainer[i].pos.z;
