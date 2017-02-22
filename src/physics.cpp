@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+
+float radius = 0.05f;
 bool waterfall = true;
 bool check;
 bool show_test_window = true;
@@ -32,17 +34,18 @@ void GUI() {
 
 namespace LilSpheres {
 	extern const int maxParticles;
-	extern void setupParticles(int numTotalParticles, float radius = 0.05f);
+	extern void setupParticles(int numTotalParticles, float radius);
 	extern void cleanupParticles();
 	extern void updateParticles(int startIdx, int count, float* array_data);
 	extern void drawParticles(int startIdx, int count);
 }
 
 float *partVerts;
-glm::vec3 gravity = {0, -9.8, 0};
+glm::vec3 gravity = {0, -4, 0};
 int updateRange = 20;
 float timePerFrame = 0.033;
-int maxLife = 60;
+int maxLife = 200;
+
 
 struct Particle {
 	glm::vec3 pos;
@@ -108,6 +111,60 @@ void PhysicsUpdate(float dt) {
 		//update position with formula
 		particlesContainer[i].pos = particlesContainer[i].lastPos + timePerFrame * particlesContainer[i].lastVel + 0.5f * gravity * (pow(timePerFrame, 2)); //components x and z have 0 gravity.
 
+
+		//AKA VAN LAS COLISIONES
+		int d;
+		float coef = 0.5;
+		if (particlesContainer[i].pos.x <= -5 + radius) {
+			glm::vec3 normal = { 1,0,0 };
+			d = 5;
+			particlesContainer[i].pos = particlesContainer[i].pos - (1+coef) * (glm::dot(normal, particlesContainer[i].pos)+d)*normal;
+			particlesContainer[i].vel = particlesContainer[i].vel - (1+coef) * (glm::dot(normal, particlesContainer[i].vel))*normal;
+
+		}
+
+		if (particlesContainer[i].pos.x >= 5 - radius) {
+			glm::vec3 normal = { -1,0,0 };
+			d = -5;
+			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coef) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coef) * (glm::dot(normal, particlesContainer[i].vel))*normal;
+
+		}
+
+		if (particlesContainer[i].pos.z <= -5 + radius) {
+			glm::vec3 normal = { 0,0,1 };
+			d = 5;
+			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coef) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coef) * (glm::dot(normal, particlesContainer[i].vel))*normal;
+
+		}
+
+		if (particlesContainer[i].pos.z >= 5 - radius) {
+			glm::vec3 normal = { 0,0,-1 };
+			d = -5;
+			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coef) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coef) * (glm::dot(normal, particlesContainer[i].vel))*normal;
+
+		}
+
+		if (particlesContainer[i].pos.y <= 0 + radius) {
+			glm::vec3 normal = { 0,1,0 };
+			d = 0;
+			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coef) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coef) * (glm::dot(normal, particlesContainer[i].vel))*normal;
+
+		}
+
+		if (particlesContainer[i].pos.y >= 10 - radius) {
+			glm::vec3 normal = { 0,-1,0 };
+			d = 10;
+			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coef) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coef) * (glm::dot(normal, particlesContainer[i].vel))*normal;
+
+		}
+
+
+
 		//life manager
 		if (particlesContainer[i].life < maxLife) {
 			particlesContainer[i].life += 1;
@@ -124,20 +181,7 @@ void PhysicsUpdate(float dt) {
 			particlesContainer[i].life = 0;
 			}
 		}
-
-		/*
-		//check colision
-		if (particlesContainer[i].pos.x <= -5 + radius || particlesContainer[i].pos.x >= 5 - radius) {
-		particlesContainer[i].pos.x = -particlesContainer[i].pos.x - 2 * (-5 - particlesContainer[i].lastPos.x + radius);
-		particlesContainer[i].vel.x = -particlesContainer[i].vel.x;
-		}
-		else if (particlesContainer[i].pos.y >= 10 - radius || particlesContainer[i].pos.y < 0 - radius) {
-
-		}
-		else if (particlesContainer[i].pos.z >= 5 - radius || particlesContainer[i].pos.z <= -5 + radius) {
-
-		}*/
-
+	
 		//update partVerts vector with the new position
 		partVerts[3 * i] = particlesContainer[i].pos.x;
 		partVerts[3 * i + 1] = particlesContainer[i].pos.y;
