@@ -10,8 +10,8 @@
 
 
 float radius = 0.05f;
-bool waterfall = true;
 bool check;
+bool waterfall = true;
 bool show_test_window = true;
 
 float *partVerts;
@@ -21,8 +21,12 @@ float timePerFrame = 0.033;
 int maxLife = 120;
 glm::vec3 gravity = { 0, -9.8, 0 };
 glm::vec3 normal = { 0,0,0 };
+
 int d;
 float coef = 0.9f;
+
+int waterfallIncrementX = -3;
+int fountainIncrementX, fountainIncrementY = 10, fountainIncrementZ;
 
 void GUI() {
 	{	//FrameRate
@@ -39,7 +43,18 @@ void GUI() {
 			waterfall = !waterfall;
 		}
 		ImGui::SliderFloat("Gravity", &gravity.y, -15, 15);
+		
+		//GUI Waterfall
 		ImGui::SliderFloat("Bounce Coef", &coef, 0, 1);
+		if (waterfall) {
+			ImGui::SliderInt("Velocity Y", &waterfallIncrementX, -10, -1);
+		}
+		else if (!waterfall) {
+			ImGui::SliderInt("Velocity X", &fountainIncrementX, -10, 10);
+			ImGui::SliderInt("Velocity Y", &fountainIncrementY, 1, 15);
+			ImGui::SliderInt("Velocity Z", &fountainIncrementZ, -10, 10);
+		}
+		
 	}
 }
 
@@ -85,12 +100,12 @@ void PhysicsInit() {
 	for (int i = 0; i < LilSpheres::maxParticles; i++) {
 		if (waterfall) {
 			particlesContainer[i].pos = glm::vec3(partVerts[i * 3], partVerts[i * 3 + 1], partVerts[i * 3 + 2]);
-			particlesContainer[i].vel = glm::vec3(-3, 0, ((float)rand() / RAND_MAX) * 6.f - 3.f); //random
+			particlesContainer[i].vel = glm::vec3(waterfallIncrementX, 0, ((float)rand() / RAND_MAX) * 6.f - 3.f); //random
 			particlesContainer[i].life = 0;
 		}
 		else if (!waterfall) {
 			particlesContainer[i].pos = glm::vec3(partVerts[i * 3], partVerts[i * 3 + 1], partVerts[i * 3 + 2]);
-			particlesContainer[i].vel = glm::vec3(((float)rand() / RAND_MAX) * 6.f - 3.f,(10 +((float)rand() / RAND_MAX) * 6.f - 3.f), ((float)rand() / RAND_MAX) * 6.f - 3.f); //random
+			particlesContainer[i].vel = glm::vec3(fountainIncrementX + ((float)rand() / RAND_MAX) * 6.f - 3.f, fountainIncrementY + ((float)rand() / RAND_MAX) * 6.f - 3.f, fountainIncrementZ + ((float)rand() / RAND_MAX) * 6.f - 3.f); //random
 			particlesContainer[i].life = 0;
 		}
 		
@@ -176,12 +191,12 @@ void PhysicsUpdate(float dt) {
 		else { //init the particle (center and new random vector)
 			if (waterfall) {
 				particlesContainer[i].pos = glm::vec3(5, 8 + ((float)rand() / RAND_MAX) * 0.2f, ((float)rand() / RAND_MAX) * 6.f - 3.f);
-				particlesContainer[i].vel = glm::vec3(-3, 0, ((float)rand() / RAND_MAX) * 6.f - 3.f); //random
+				particlesContainer[i].vel = glm::vec3(waterfallIncrementX, 0, ((float)rand() / RAND_MAX) * 6.f - 3.f); //random
 				particlesContainer[i].life = 0;
 			}
 			else if (!waterfall) {
 			particlesContainer[i].pos = glm::vec3(0,1,0);
-			particlesContainer[i].vel = glm::vec3(((float)rand() / RAND_MAX) * 6.f - 3.f, (10 + ((float)rand() / RAND_MAX) * 6.f - 3.f), ((float)rand() / RAND_MAX) * 6.f - 3.f); //random
+			particlesContainer[i].vel = glm::vec3(fountainIncrementX + ((float)rand() / RAND_MAX) * 6.f - 3.f, fountainIncrementY + ((float)rand() / RAND_MAX) * 6.f - 3.f, fountainIncrementZ + ((float)rand() / RAND_MAX) * 6.f - 3.f); //random
 			particlesContainer[i].life = 0;
 			}
 		}
