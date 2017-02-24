@@ -22,11 +22,18 @@ int maxLife = 120;
 glm::vec3 gravity = { 0, -9.8, 0 };
 glm::vec3 normal = { 0,0,0 };
 
+//planes and collisions
 int d;
-float coef = 0.9f;
+float coefElasticity = 0.9f;
 
+//HUD velocity
 int waterfallIncrementX = -3;
 int fountainIncrementX, fountainIncrementY = 10, fountainIncrementZ;
+
+//friction
+glm::vec3 vNormal;
+glm::vec3 vTangencial;
+float coefFriction = 0.f;
 
 void GUI() {
 	{	//FrameRate
@@ -45,10 +52,11 @@ void GUI() {
 		ImGui::SliderFloat("Gravity", &gravity.y, -15, 15);
 		
 		//GUI Waterfall
-		ImGui::SliderFloat("Bounce Coef", &coef, 0, 1);
+		ImGui::SliderFloat("Coef.Elasticity", &coefElasticity, 0, 1);
+		ImGui::SliderFloat("Coef.Friction", &coefFriction, 0, 1);
 		if (waterfall) {
 			ImGui::SliderInt("Velocity Y", &waterfallIncrementX, -10, -1);
-		}
+		} //GUI Fountain
 		else if (!waterfall) {
 			ImGui::SliderInt("Velocity X", &fountainIncrementX, -10, 10);
 			ImGui::SliderInt("Velocity Y", &fountainIncrementY, 1, 15);
@@ -128,57 +136,88 @@ void PhysicsUpdate(float dt) {
 		particlesContainer[i].lastPos = particlesContainer[i].pos;
 
 		//update position with formula
-		particlesContainer[i].pos = particlesContainer[i].lastPos + timePerFrame * particlesContainer[i].lastVel + 0.5f * gravity * (pow(timePerFrame, 2)); //components x and z have 0 gravity.
+		particlesContainer[i].pos = particlesContainer[i].lastPos + timePerFrame * particlesContainer[i].lastVel; //components x and z have 0 gravity.
+
 
 
 		//colisions
-
 		//left wall
 		if (particlesContainer[i].pos.x <= -5 + radius) {
 			normal = { 1,0,0 };
 			d = 5;
-			particlesContainer[i].pos = particlesContainer[i].pos - (1+coef) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
-			particlesContainer[i].vel = particlesContainer[i].vel - (1+coef) * (glm::dot(normal, particlesContainer[i].vel))*normal;
+
+			//friction values
+			vNormal = glm::dot(normal, particlesContainer[i].vel) * normal;
+			vTangencial = particlesContainer[i].vel - vNormal;
+
+			//elasticity and friction
+			particlesContainer[i].pos = particlesContainer[i].pos - (1+coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))* normal - coefFriction*vTangencial;
 
 		}
 		//right wall
 		if (particlesContainer[i].pos.x >= 5 - radius) {
 			normal = { -1,0,0 };
 			d = 5;
-			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coef) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
-			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coef) * (glm::dot(normal, particlesContainer[i].vel))*normal;
+
+			//friction values
+			vNormal = glm::dot(normal, particlesContainer[i].vel) * normal;
+			vTangencial = particlesContainer[i].vel - vNormal;
+
+			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal * normal - coefFriction*vTangencial;
 
 		}
 		//front wall
 		if (particlesContainer[i].pos.z <= -5 + radius) {
 			normal = { 0,0,1 };
 			d = 5;
-			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coef) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
-			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coef) * (glm::dot(normal, particlesContainer[i].vel))*normal;
+
+			//friction values
+			vNormal = glm::dot(normal, particlesContainer[i].vel) * normal;
+			vTangencial = particlesContainer[i].vel - vNormal;
+
+			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal * normal - coefFriction*vTangencial;
 
 		}
 		//back wall
 		if (particlesContainer[i].pos.z >= 5 - radius) {
 			normal = { 0,0,-1 };
 			d = 5;
-			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coef) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
-			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coef) * (glm::dot(normal, particlesContainer[i].vel))*normal;
+
+			//friction values
+			vNormal = glm::dot(normal, particlesContainer[i].vel) * normal;
+			vTangencial = particlesContainer[i].vel - vNormal;
+
+			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal * normal - coefFriction*vTangencial;
 
 		}
 		//floor
 		if (particlesContainer[i].pos.y <= 0 + radius) {
 			normal = { 0,1,0 };
 			d = 0;
-			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coef) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
-			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coef) * (glm::dot(normal, particlesContainer[i].vel))*normal;
+
+			//friction values
+			vNormal = glm::dot(normal, particlesContainer[i].vel) * normal;
+			vTangencial = particlesContainer[i].vel - vNormal;
+
+			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal * normal - coefFriction*vTangencial;
 
 		}
 		//top wall
 		if (particlesContainer[i].pos.y >= 10 - radius) {
 			normal = { 0,-1,0 };
 			d = 10;
-			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coef) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
-			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coef) * (glm::dot(normal, particlesContainer[i].vel))*normal;
+
+			//friction values
+			vNormal = glm::dot(normal, particlesContainer[i].vel) * normal;
+			vTangencial = particlesContainer[i].vel - vNormal;
+
+			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal * normal - coefFriction*vTangencial;
 
 		}
 
