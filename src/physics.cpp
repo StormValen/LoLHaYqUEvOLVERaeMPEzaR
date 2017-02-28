@@ -11,6 +11,7 @@
 
 float radius = 0.05f;
 bool check;
+bool check2;
 bool waterfall = true;
 bool show_test_window = true;
 
@@ -23,7 +24,7 @@ glm::vec3 gravity = { 0, -9.8, 0 };
 glm::vec3 normal = { 0,0,0 };
 
 //planes and collisions
-int d;
+float d;
 float coefElasticity = 0.9f;
 
 //HUD velocity
@@ -34,6 +35,9 @@ int fountainIncrementX, fountainIncrementY = 10, fountainIncrementZ;
 glm::vec3 vNormal;
 glm::vec3 vTangencial;
 float coefFriction = 0.f;
+
+//modes
+bool euler = false;
 
 void GUI() {
 	{	//FrameRate
@@ -49,6 +53,13 @@ void GUI() {
 		if (check) {
 			waterfall = !waterfall;
 		}
+
+		check2 = ImGui::SmallButton("Euler/Verlet");
+
+		if (check2) {
+			euler = !euler;
+		}
+
 		ImGui::SliderFloat("Gravity", &gravity.y, -15, 15);
 		
 		//GUI Waterfall
@@ -108,6 +119,7 @@ void PhysicsInit() {
 	for (int i = 0; i < LilSpheres::maxParticles; i++) {
 		if (waterfall) {
 			particlesContainer[i].pos = glm::vec3(partVerts[i * 3], partVerts[i * 3 + 1], partVerts[i * 3 + 2]);
+			if (!euler) { particlesContainer[i].lastPos = particlesContainer[i].pos; } //verlet}
 			particlesContainer[i].vel = glm::vec3(waterfallIncrementX, 0, ((float)rand() / RAND_MAX) * 6.f - 3.f); //random
 			particlesContainer[i].life = 0;
 		}
@@ -129,15 +141,27 @@ void PhysicsUpdate(float dt) {
 		particlesContainer[i].lastVel = particlesContainer[i].vel;
 
 
-		//update vector velocity velocity with formula
-		particlesContainer[i].vel = particlesContainer[i].lastVel + gravity * timePerFrame;
+		if (euler) {
+			//update vector velocity velocity with formula
+			particlesContainer[i].vel = particlesContainer[i].lastVel + gravity * timePerFrame;
+		}
+		if (!euler) {
+			particlesContainer[i].vel = (particlesContainer[i].pos - particlesContainer[i].lastPos) / timePerFrame;
+		}
+		
 
-		//save last position 
-		particlesContainer[i].lastPos = particlesContainer[i].pos;
+		if (euler) {
+			//save last position 
+			particlesContainer[i].lastPos = particlesContainer[i].pos;
 
-		//update position with formula
-		particlesContainer[i].pos = particlesContainer[i].lastPos + timePerFrame * particlesContainer[i].lastVel; //components x and z have 0 gravity.
-
+			//update position with formula
+			particlesContainer[i].pos = particlesContainer[i].lastPos + timePerFrame * particlesContainer[i].lastVel; //components x and z have 0 gravity.
+		}
+		else if (!euler) {
+			glm::vec3 temp = particlesContainer[i].pos;
+			particlesContainer[i].pos = particlesContainer[i].pos + (particlesContainer[i].pos - particlesContainer[i].lastPos) + gravity * glm::pow(timePerFrame, 2);
+			particlesContainer[i].lastPos = temp;
+		}
 
 
 		//colisions
@@ -165,7 +189,7 @@ void PhysicsUpdate(float dt) {
 			vTangencial = particlesContainer[i].vel - vNormal;
 
 			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
-			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal * normal - coefFriction*vTangencial;
+			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal - coefFriction*vTangencial;
 
 		}
 		//front wall
@@ -178,7 +202,7 @@ void PhysicsUpdate(float dt) {
 			vTangencial = particlesContainer[i].vel - vNormal;
 
 			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
-			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal * normal - coefFriction*vTangencial;
+			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal - coefFriction*vTangencial;
 
 		}
 		//back wall
@@ -191,7 +215,7 @@ void PhysicsUpdate(float dt) {
 			vTangencial = particlesContainer[i].vel - vNormal;
 
 			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
-			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal * normal - coefFriction*vTangencial;
+			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal - coefFriction*vTangencial;
 
 		}
 		//floor
@@ -204,7 +228,7 @@ void PhysicsUpdate(float dt) {
 			vTangencial = particlesContainer[i].vel - vNormal;
 
 			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
-			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal * normal - coefFriction*vTangencial;
+			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal - coefFriction*vTangencial;
 
 		}
 		//top wall
@@ -217,10 +241,9 @@ void PhysicsUpdate(float dt) {
 			vTangencial = particlesContainer[i].vel - vNormal;
 
 			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
-			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal * normal - coefFriction*vTangencial;
+			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal - coefFriction*vTangencial;
 
 		}
-
 
 
 		//life manager
@@ -230,6 +253,7 @@ void PhysicsUpdate(float dt) {
 		else { //init the particle (center and new random vector)
 			if (waterfall) {
 				particlesContainer[i].pos = glm::vec3(5, 8 + ((float)rand() / RAND_MAX) * 0.2f, ((float)rand() / RAND_MAX) * 6.f - 3.f);
+				if (!euler) { particlesContainer[i].lastPos = particlesContainer[i].pos; } //verlet}
 				particlesContainer[i].vel = glm::vec3(waterfallIncrementX, 0, ((float)rand() / RAND_MAX) * 6.f - 3.f); //random
 				particlesContainer[i].life = 0;
 			}
