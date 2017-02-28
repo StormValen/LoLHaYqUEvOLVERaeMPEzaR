@@ -137,29 +137,23 @@ void PhysicsUpdate(float dt) {
 	//for all particles
 	for (int i = 0; i < updateRange; i++) {
 
-		//save last velocity module
-		particlesContainer[i].lastVel = particlesContainer[i].vel;
-
-
 		if (euler) {
+			//save last velocity module
+			particlesContainer[i].lastVel = particlesContainer[i].vel;
+
 			//update vector velocity velocity with formula
 			particlesContainer[i].vel = particlesContainer[i].lastVel + gravity * timePerFrame;
-		}
-		if (!euler) {
-			particlesContainer[i].vel = (particlesContainer[i].pos - particlesContainer[i].lastPos) / timePerFrame;
-		}
-		
 
-		if (euler) {
 			//save last position 
 			particlesContainer[i].lastPos = particlesContainer[i].pos;
 
 			//update position with formula
 			particlesContainer[i].pos = particlesContainer[i].lastPos + timePerFrame * particlesContainer[i].lastVel; //components x and z have 0 gravity.
 		}
-		else if (!euler) {
+		if (!euler) { //mass particule =1
 			glm::vec3 temp = particlesContainer[i].pos;
 			particlesContainer[i].pos = particlesContainer[i].pos + (particlesContainer[i].pos - particlesContainer[i].lastPos) + gravity * glm::pow(timePerFrame, 2);
+			//particlesContainer[i].vel = (particlesContainer[i].pos - particlesContainer[i].lastPos) / timePerFrame;
 			particlesContainer[i].lastPos = temp;
 		}
 
