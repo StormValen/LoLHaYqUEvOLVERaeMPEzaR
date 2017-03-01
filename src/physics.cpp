@@ -119,13 +119,14 @@ void PhysicsInit() {
 	for (int i = 0; i < LilSpheres::maxParticles; i++) {
 		if (waterfall) {
 			particlesContainer[i].pos = glm::vec3(partVerts[i * 3], partVerts[i * 3 + 1], partVerts[i * 3 + 2]);
-			if (!euler) { particlesContainer[i].lastPos = particlesContainer[i].pos; } //verlet}
+			if (!euler) { particlesContainer[i].lastPos =  particlesContainer[i].pos - glm::vec3(5,0,0)*timePerFrame; }//verlet}
 			particlesContainer[i].vel = glm::vec3(waterfallIncrementX, 0, ((float)rand() / RAND_MAX) * 6.f - 3.f); //random
 			particlesContainer[i].life = 0;
 		}
 		else if (!waterfall) {
 			particlesContainer[i].pos = glm::vec3(partVerts[i * 3], partVerts[i * 3 + 1], partVerts[i * 3 + 2]);
 			particlesContainer[i].vel = glm::vec3(fountainIncrementX + ((float)rand() / RAND_MAX) * 6.f - 3.f, fountainIncrementY + ((float)rand() / RAND_MAX) * 6.f - 3.f, fountainIncrementZ + ((float)rand() / RAND_MAX) * 6.f - 3.f); //random
+			if (!euler) { particlesContainer[i].lastPos = particlesContainer[i].pos - particlesContainer[i].vel*timePerFrame; }//verlet}
 			particlesContainer[i].life = 0;
 		}
 		
@@ -133,6 +134,7 @@ void PhysicsInit() {
 }
 void PhysicsUpdate(float dt) {
 
+	glm::vec3 temp;
 
 	//for all particles
 	for (int i = 0; i < updateRange; i++) {
@@ -151,9 +153,8 @@ void PhysicsUpdate(float dt) {
 			particlesContainer[i].pos = particlesContainer[i].lastPos + timePerFrame * particlesContainer[i].lastVel; //components x and z have 0 gravity.
 		}
 		if (!euler) { //mass particule =1
-			glm::vec3 temp = particlesContainer[i].pos;
-			particlesContainer[i].pos = particlesContainer[i].pos + (particlesContainer[i].pos - particlesContainer[i].lastPos) + gravity * glm::pow(timePerFrame, 2);
-			//particlesContainer[i].vel = (particlesContainer[i].pos - particlesContainer[i].lastPos) / timePerFrame;
+			temp = particlesContainer[i].pos;
+			particlesContainer[i].pos = temp + (temp - particlesContainer[i].lastPos) + gravity * glm::pow(timePerFrame, 2);
 			particlesContainer[i].lastPos = temp;
 		}
 
@@ -164,13 +165,19 @@ void PhysicsUpdate(float dt) {
 			normal = { 1,0,0 };
 			d = 5;
 
-			//friction values
-			vNormal = glm::dot(normal, particlesContainer[i].vel) * normal;
-			vTangencial = particlesContainer[i].vel - vNormal;
+			if(euler){
+				//friction values
+				vNormal = glm::dot(normal, particlesContainer[i].vel) * normal;
+				vTangencial = particlesContainer[i].vel - vNormal;
 
-			//elasticity and friction
-			particlesContainer[i].pos = particlesContainer[i].pos - (1+coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
-			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))* normal - coefFriction*vTangencial;
+				//elasticity and friction
+				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+				particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))* normal - coefFriction*vTangencial;
+			}
+			if (!euler) {
+				particlesContainer[i].lastPos = particlesContainer[i].lastPos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].lastPos) + d)*normal;
+				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+			}
 
 		}
 		//right wall
@@ -178,12 +185,19 @@ void PhysicsUpdate(float dt) {
 			normal = { -1,0,0 };
 			d = 5;
 
-			//friction values
-			vNormal = glm::dot(normal, particlesContainer[i].vel) * normal;
-			vTangencial = particlesContainer[i].vel - vNormal;
+			if (euler) {
+				//friction values
+				vNormal = glm::dot(normal, particlesContainer[i].vel) * normal;
+				vTangencial = particlesContainer[i].vel - vNormal;
 
-			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
-			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal - coefFriction*vTangencial;
+				//elasticity and friction
+				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+				particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))* normal - coefFriction*vTangencial;
+			}
+			if (!euler) {
+				particlesContainer[i].lastPos = particlesContainer[i].lastPos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].lastPos) + d)*normal;
+				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+			}
 
 		}
 		//front wall
@@ -191,12 +205,19 @@ void PhysicsUpdate(float dt) {
 			normal = { 0,0,1 };
 			d = 5;
 
-			//friction values
-			vNormal = glm::dot(normal, particlesContainer[i].vel) * normal;
-			vTangencial = particlesContainer[i].vel - vNormal;
+			if (euler) {
+				//friction values
+				vNormal = glm::dot(normal, particlesContainer[i].vel) * normal;
+				vTangencial = particlesContainer[i].vel - vNormal;
 
-			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
-			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal - coefFriction*vTangencial;
+				//elasticity and friction
+				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+				particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))* normal - coefFriction*vTangencial;
+			}
+			if (!euler) {
+				particlesContainer[i].lastPos = particlesContainer[i].lastPos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].lastPos) + d)*normal;
+				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+			}
 
 		}
 		//back wall
@@ -204,12 +225,19 @@ void PhysicsUpdate(float dt) {
 			normal = { 0,0,-1 };
 			d = 5;
 
-			//friction values
-			vNormal = glm::dot(normal, particlesContainer[i].vel) * normal;
-			vTangencial = particlesContainer[i].vel - vNormal;
+			if (euler) {
+				//friction values
+				vNormal = glm::dot(normal, particlesContainer[i].vel) * normal;
+				vTangencial = particlesContainer[i].vel - vNormal;
 
-			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
-			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal - coefFriction*vTangencial;
+				//elasticity and friction
+				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+				particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))* normal - coefFriction*vTangencial;
+			}
+			if (!euler) {
+				particlesContainer[i].lastPos = particlesContainer[i].lastPos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].lastPos) + d)*normal;
+				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+			}
 
 		}
 		//floor
@@ -217,12 +245,19 @@ void PhysicsUpdate(float dt) {
 			normal = { 0,1,0 };
 			d = 0;
 
-			//friction values
-			vNormal = glm::dot(normal, particlesContainer[i].vel) * normal;
-			vTangencial = particlesContainer[i].vel - vNormal;
+			if (euler) {
+				//friction values
+				vNormal = glm::dot(normal, particlesContainer[i].vel) * normal;
+				vTangencial = particlesContainer[i].vel - vNormal;
 
-			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
-			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal - coefFriction*vTangencial;
+				//elasticity and friction
+				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+				particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))* normal - coefFriction*vTangencial;
+			}
+			if (!euler) {
+				particlesContainer[i].lastPos = particlesContainer[i].lastPos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].lastPos) + d)*normal;
+				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+			}
 
 		}
 		//top wall
@@ -230,12 +265,19 @@ void PhysicsUpdate(float dt) {
 			normal = { 0,-1,0 };
 			d = 10;
 
-			//friction values
-			vNormal = glm::dot(normal, particlesContainer[i].vel) * normal;
-			vTangencial = particlesContainer[i].vel - vNormal;
+			if (euler) {
+				//friction values
+				vNormal = glm::dot(normal, particlesContainer[i].vel) * normal;
+				vTangencial = particlesContainer[i].vel - vNormal;
 
-			particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
-			particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))*normal - coefFriction*vTangencial;
+				//elasticity and friction
+				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+				particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))* normal - coefFriction*vTangencial;
+			}
+			if (!euler) {
+				particlesContainer[i].lastPos = particlesContainer[i].lastPos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].lastPos) + d)*normal;
+				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+			}
 
 		}
 
@@ -247,13 +289,14 @@ void PhysicsUpdate(float dt) {
 		else { //init the particle (center and new random vector)
 			if (waterfall) {
 				particlesContainer[i].pos = glm::vec3(5, 8 + ((float)rand() / RAND_MAX) * 0.2f, ((float)rand() / RAND_MAX) * 6.f - 3.f);
-				if (!euler) { particlesContainer[i].lastPos = particlesContainer[i].pos; } //verlet}
+				if (!euler) { particlesContainer[i].lastPos = particlesContainer[i].pos - glm::vec3(5, 0, 0)*timePerFrame; }//verlet}
 				particlesContainer[i].vel = glm::vec3(waterfallIncrementX, 0, ((float)rand() / RAND_MAX) * 6.f - 3.f); //random
 				particlesContainer[i].life = 0;
 			}
 			else if (!waterfall) {
 			particlesContainer[i].pos = glm::vec3(0,1,0);
 			particlesContainer[i].vel = glm::vec3(fountainIncrementX + ((float)rand() / RAND_MAX) * 6.f - 3.f, fountainIncrementY + ((float)rand() / RAND_MAX) * 6.f - 3.f, fountainIncrementZ + ((float)rand() / RAND_MAX) * 6.f - 3.f); //random
+			if (!euler) { particlesContainer[i].lastPos = particlesContainer[i].pos - particlesContainer[i].vel*timePerFrame; }//verlet}
 			particlesContainer[i].life = 0;
 			}
 		}
