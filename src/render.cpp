@@ -666,11 +666,11 @@ GLuint particlesVao;
 GLuint particlesVbo;
 float radius;
 int numparticles;
-extern const int maxParticles = 3000;
+extern const int maxParticles = 2000;
 
 void setupParticles(int numTotalParticles, float radius) {
 	assert(numTotalParticles > 0);
-	assert(numTotalParticles <= 3000);
+	assert(numTotalParticles <= 2000);
 	numparticles = numTotalParticles;
 	LilSpheres::radius = radius;
 	

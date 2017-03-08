@@ -20,7 +20,7 @@ float *partVerts;
 
 int updateRange = 20;
 float timePerFrame = 0.033;
-int maxLife = 160;
+int maxLife = 100;
 glm::vec3 gravity = { 0, -9.8, 0 };
 glm::vec3 normal = { 0,0,0 };
 
@@ -118,7 +118,7 @@ void PhysicsInit() {
 	//Sphere::setupSphere();
 	partVerts = new float[LilSpheres::maxParticles * 3];
 
-	sphere->pos = { 1.f, 3.f, 0.5f };
+	sphere->pos = { 2.0f, 5.f, 0.0f };
 	sphere->radius = 1.0f;
 	
 	//init position particles
@@ -197,8 +197,15 @@ void PhysicsUpdate(float dt) {
 				particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))* normal - coefFriction*vTangencial;
 			}
 			if (!euler) {
+
 				particlesContainer[i].lastPos = particlesContainer[i].lastPos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].lastPos) + d)*normal;
 				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+
+				glm::vec3 v = particlesContainer[i].pos - particlesContainer[i].lastPos;
+				vNormal = glm::dot(v, normal) * normal;
+				vTangencial = v - vNormal;
+
+				particlesContainer[i].lastPos += vTangencial * coefFriction;
 			}
 
 		}
@@ -217,8 +224,15 @@ void PhysicsUpdate(float dt) {
 				particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))* normal - coefFriction*vTangencial;
 			}
 			if (!euler) {
+
 				particlesContainer[i].lastPos = particlesContainer[i].lastPos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].lastPos) + d)*normal;
 				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+
+				glm::vec3 v = particlesContainer[i].pos - particlesContainer[i].lastPos;
+				vNormal = glm::dot(v, normal) * normal;
+				vTangencial = v - vNormal;
+
+				particlesContainer[i].lastPos += vTangencial * coefFriction;
 			}
 
 		}
@@ -237,8 +251,15 @@ void PhysicsUpdate(float dt) {
 				particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))* normal - coefFriction*vTangencial;
 			}
 			if (!euler) {
+
 				particlesContainer[i].lastPos = particlesContainer[i].lastPos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].lastPos) + d)*normal;
 				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+
+				glm::vec3 v = particlesContainer[i].pos - particlesContainer[i].lastPos;
+				vNormal = glm::dot(v, normal) * normal;
+				vTangencial = v - vNormal;
+
+				particlesContainer[i].lastPos += vTangencial * coefFriction;
 			}
 
 		}
@@ -257,8 +278,15 @@ void PhysicsUpdate(float dt) {
 				particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))* normal - coefFriction*vTangencial;
 			}
 			if (!euler) {
+
 				particlesContainer[i].lastPos = particlesContainer[i].lastPos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].lastPos) + d)*normal;
 				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+
+				glm::vec3 v = particlesContainer[i].pos - particlesContainer[i].lastPos;
+				vNormal = glm::dot(v, normal) * normal;
+				vTangencial = v - vNormal;
+
+				particlesContainer[i].lastPos += vTangencial * coefFriction;
 			}
 
 		}
@@ -277,8 +305,15 @@ void PhysicsUpdate(float dt) {
 				particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))* normal - coefFriction*vTangencial;
 			}
 			if (!euler) {
+
 				particlesContainer[i].lastPos = particlesContainer[i].lastPos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].lastPos) + d)*normal;
 				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+
+				glm::vec3 v = particlesContainer[i].pos - particlesContainer[i].lastPos;
+				vNormal = glm::dot(v, normal) * normal;
+				vTangencial = v - vNormal;
+
+				particlesContainer[i].lastPos += vTangencial * coefFriction;
 			}
 
 		}
@@ -297,8 +332,15 @@ void PhysicsUpdate(float dt) {
 				particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))* normal - coefFriction*vTangencial;
 			}
 			if (!euler) {
+
 				particlesContainer[i].lastPos = particlesContainer[i].lastPos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].lastPos) + d)*normal;
 				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+
+				glm::vec3 v = particlesContainer[i].pos - particlesContainer[i].lastPos;
+				vNormal = glm::dot(v, normal) * normal;
+				vTangencial = v - vNormal;
+
+				particlesContainer[i].lastPos += vTangencial * coefFriction;
 			}
 
 		}
@@ -319,8 +361,15 @@ void PhysicsUpdate(float dt) {
 				particlesContainer[i].vel = particlesContainer[i].vel - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].vel))* normal - coefFriction*vTangencial;
 			}
 			if (!euler) {
+
 				particlesContainer[i].lastPos = particlesContainer[i].lastPos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].lastPos) + d)*normal;
 				particlesContainer[i].pos = particlesContainer[i].pos - (1 + coefElasticity) * (glm::dot(normal, particlesContainer[i].pos) + d)*normal;
+
+				glm::vec3 v = particlesContainer[i].pos - particlesContainer[i].lastPos;
+				vNormal = glm::dot(v, normal) * normal;
+				vTangencial = v - vNormal;
+
+				particlesContainer[i].lastPos += vTangencial * coefFriction;
 			}
 
 		}
